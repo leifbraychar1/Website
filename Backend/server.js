@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const fs = require('fs')
 const path = require('path');
 const rateLimit = require('express-rate-limit');
 
@@ -27,11 +28,37 @@ const loginLimiter = rateLimit({
 const MOCK_DATABASE = [
     {
         username: "TheCulled",
-        passwordHash: "$2b$10$yTuYoBVPH6xs.7tt4oOUPujCafsdHF.bdUYFvfexqYpBB45E2wG56"
+        passwordHash: process.env.PASSWORD_HASH,
+        role: "admin"
+    },
+
+    {
+        username: "StandardFriend",
+        passwordHash: process.env.FRIEND_HASH, 
+        role: "user"
     }
 ];
 
 const JWT_SECRET = process.env.JWT_SECRET;
+
+app.use((req, res, next) => {
+    //capture ip immediately
+    const userIp = req.ip || req.connection.remoteAddress;
+
+    //wait for response
+    res.on('finish', () => {
+
+        const logEntry = `${new Date().toLocaleString()} - IP: ${userIp} - Status: ${res.statusCode}\n`;
+
+        //write to log
+        fs.appendFile(path.join(__dirname, 'access.log'), logEntry, (err) => {
+            if (err) console.error('Failed to write to log file');
+        });
+    });
+
+    //proceed
+    next();
+});
 
 app.use(express.static('../frontend/Public'));
 
@@ -56,7 +83,11 @@ app.post('/api/v1/login', loginLimiter, async (req, res) => {
         if (isMatch) {
 
             const token = jwt.sign(
-                { username: foundUser.username }, 
+                { 
+                    username: foundUser.username,
+                    role = foundUser.role
+                }, 
+
                 JWT_SECRET, 
                 { expiresIn: '1hr' } // Token expires automatically in 1 hour
             );
@@ -101,9 +132,23 @@ function verifyPrivateAccess(req, res, next) {
     }
 }
 
+function authorizeRoles(...allowedRoles) {
+    return (req, res, next) => {
+        //check role
+        if (!allowedRoles.includes(req.user.role)) {
+            //send 403 if there's no access
+            return res.status(403).json({ message: "Forbidden: You do not have permission to view this." });
+        }
+        
+        
+        next();
+    };
+}
+
 app.use('/private', verifyPrivateAccess, express.static(path.join(__dirname, '../frontend/private')));
+app.use('/admin', verifyPrivateAccess, authorizeRoles('admin'), express.static(path.join(__dirname, '../frontend/private/admin')));
 
 app.listen(PORT, () => {
-    console.log(`Server is running locally at http://localhost:${PORT}`);
-    console.log("Press Ctrl + C in the terminal to stop the server.");
+    console.log(`running locally at http://localhost:${PORT}`);
+    console.log(`fuck off`)
 });
