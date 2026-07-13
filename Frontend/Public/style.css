@@ -1,0 +1,40 @@
+/* Center everything on the page and give it some 'breathing room' */
+body {
+    display: flex;             /* This turns on the flexbox layout */
+    flex-direction: column;    /* Stacks elements vertically */
+    align-items: center;       /* Centers items horizontally */
+    justify-content: center;   /* Centers items vertically */
+    height: 100vh;             /* Makes the page take up the full screen height */
+    font-family: sans-serif;   /* Gives it a clean, modern look */
+    padding: 40px;             /* Adds space around the edges */
+    background-color: #00261c;
+}
+
+button {
+    color: #3d5478;
+}
+
+label {
+  color: #3498db; /* Changes text to a soft blue */
+}
+
+/* Add space around your headline */
+h1 {
+    margin-bottom: 20px;       /* Adds breathing room below the heading */
+    color: #a8a8a8;               /* A softer dark gray color */
+}
+
+/* Style the link to look like a button */
+a {
+    padding: 10px 20px;        /* Adds space inside the button */
+    background-color: #007bff; /* A nice blue color */
+    color: white;              /* White text */
+    text-decoration: none;     /* Removes the default underline */
+    border-radius: 5px;        /* Rounds the corners */
+    transition: background 0.3s; /* Makes the hover effect smooth */
+}
+
+/* A simple hover effect to show the button is clickable */
+a:hover {
+    background-color: #0056b3; /* A darker blue when you mouse over */
+}
